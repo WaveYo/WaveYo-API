@@ -1,0 +1,74 @@
+import os
+import contextlib
+import uvicorn
+from fastapi import FastAPI
+from core import PluginManager
+
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理"""
+    # 获取插件管理器实例
+    plugin_manager = app.state.plugin_manager
+    
+    # 启动时加载插件
+    plugin_manager.load_all_plugins_with_deps()
+    yield
+    # 关闭时清理资源（可选）
+
+
+def create_app() -> FastAPI:
+    """创建并配置FastAPI应用"""
+    
+    # 创建FastAPI应用
+    app = FastAPI(
+        title="WaveYo-API",
+        description="基于FastAPI的插件化后端服务",
+        version="0.1.0",
+        lifespan=lifespan
+    )
+    
+    # 创建插件管理器
+    plugin_manager = PluginManager(app, "./plugins")
+    
+    # 将插件管理器存储到应用状态
+    app.state.plugin_manager = plugin_manager
+    
+    # 构建配置
+    app_config = {
+        'logging': {
+            'level': os.getenv('LOG_LEVEL', 'INFO')
+        }
+    }
+    
+    # 注册共享依赖
+    plugin_manager.register_shared_dependency('config', app_config)
+        
+    @app.get("/")
+    async def root():
+        """根端点"""
+        return {
+            "message": "Welcome to WaveYo-API",
+            "version": "0.1.0",
+            "loaded_plugins": list(plugin_manager.get_loaded_plugins().keys())
+        }
+    
+    @app.get("/health")
+    async def health_check():
+        """健康检查端点"""
+        return {"status": "healthy", "timestamp": "2025-08-20T01:31:00Z"}
+    
+    return app
+
+
+if __name__ == "__main__":
+    # 创建应用
+    app = create_app()
+    
+    # 启动服务器
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        log_level="info"
+    )
