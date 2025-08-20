@@ -82,3 +82,11 @@ temp/
 .uv/
 .pytest_cache/
 .mypy_cache/
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Another files
+README.png

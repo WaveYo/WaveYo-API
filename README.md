@@ -1,10 +1,10 @@
 # WaveYo-API
 
-基于FastAPI的插件化后端服务，采用微内核架构设计。
+基于FastAPI的插件化后端服务，采用核心-插件架构设计。
 
 ## 特性
 
-- 🚀 **插件化架构** - 所有功能以插件形式动态加载
+- 🚀 **核心-插件架构** - 所有功能以插件形式动态加载
 - ⚡ **高性能** - 基于FastAPI和异步编程
 - 📝 **统一日志** - 自定义日志格式和统一管理
 - 🔧 **依赖自动安装** - 插件依赖自动检测和安装
@@ -161,19 +161,58 @@ uvicorn main:create_app --reload --host 0.0.0.0 --port 8000
 gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:create_app
 ```
 
-### Docker部署
+### Docker Compose 本地开发
+
+创建 `docker-compose.yml` 文件：
+
+```yaml
+version: '3.8'
+
+services:
+  waveyo-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=INFO
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    restart: unless-stopped
+```
+
+创建 `Dockerfile` 示例：
 
 ```dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
 
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件并安装
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 复制应用代码
 COPY . .
 
+# 暴露端口
+EXPOSE 8000
+
+# 启动应用
 CMD ["python", "main.py"]
 ```
+
+启动服务：
+```bash
+docker-compose up --build
+```
+
+服务将在 `http://localhost:8000` 启动，支持代码热重载。
 
 ## 贡献指南
 
@@ -185,7 +224,7 @@ CMD ["python", "main.py"]
 
 ## 许可证
 
-MIT License
+[MIT License](./LICENSE)
 
 ## 支持
 
