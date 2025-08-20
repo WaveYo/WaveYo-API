@@ -29,6 +29,7 @@ WaveYo-API/
 │       └── requirements.txt
 ├── main.py              # 主程序入口
 ├── plugin_downloader.py # 插件下载工具
+├── yoapi.py            # CLI工具
 ├── requirements.txt     # 主项目依赖
 ├── .env                # 环境变量配置
 ├── .env.example        # 环境变量示例
@@ -37,28 +38,43 @@ WaveYo-API/
 
 ## 快速开始
 
-### 1. 安装依赖
+### 1. 使用CLI工具（推荐）
+
+WaveYo-API 提供了强大的CLI工具来简化开发流程：
 
 ```bash
+# 创建虚拟环境（优先使用uv）
+yoapi venv create
+
+# 激活虚拟环境（Windows）
+.\.venv\Scripts\activate
+
+# 或激活虚拟环境（Unix/Linux/Mac）
+source .venv/bin/activate
+
+# 安装项目依赖
+yoapi package install -r requirements.txt
+
+# 启动服务（开发模式）
+yoapi run --reload
+```
+
+### 2. 传统方式
+
+```bash
+# 安装依赖
 # 使用uv（推荐）
 uv pip install -r requirements.txt
 
 # 或使用pip
 pip install -r requirements.txt
-```
 
-### 2. 配置环境变量
-
-复制环境变量示例文件：
-```bash
+# 配置环境变量
 cp .env.example .env
-```
 
-编辑 `.env` 文件配置您的设置。
+# 编辑 .env 文件配置您的设置
 
-### 3. 启动服务
-
-```bash
+# 启动服务
 python main.py
 ```
 
@@ -81,6 +97,57 @@ curl http://localhost:8000/health
 打开 http://localhost:8000/docs
 ```
 
+## CLI工具使用指南
+
+WaveYo-API 提供了强大的命令行工具 `yoapi.py` 来简化开发流程：
+
+### 虚拟环境管理
+```bash
+# 创建虚拟环境（优先使用uv）
+yoapi venv create
+
+# 激活虚拟环境后，可以使用以下命令
+```
+
+### 包管理
+```bash
+# 安装包（优先使用uv）
+yoapi package install <package-name>
+
+# 安装requirements.txt中的所有包
+yoapi package install -r requirements.txt
+
+# 卸载包
+yoapi package uninstall <package-name>
+```
+
+### 插件管理
+```bash
+# 下载插件（从GitHub）
+yoapi plugin download owner/repo-name
+
+# 示例：下载MySQL数据库插件
+yoapi plugin download WaveYo/yoapi-plugin-mysql-database
+
+# 列出已安装的插件
+yoapi plugin list
+
+# 删除插件
+yoapi plugin remove <plugin-name>
+
+# 创建新插件（自动添加yoapi-plugin-前缀）
+yoapi plugin new my-plugin
+```
+
+### 项目运行
+```bash
+# 运行项目
+yoapi run
+
+# 运行项目（热重载模式）
+yoapi run --reload
+```
+
 ## 插件开发
 
 ### 插件命名规范
@@ -95,7 +162,10 @@ curl http://localhost:8000/health
 WaveYo-API 提供了插件下载工具，可以从GitHub自动下载插件：
 
 ```bash
-# 下载插件
+# 使用CLI工具下载插件（推荐）
+yoapi plugin download owner/repo-name
+
+# 或使用原始下载工具
 python plugin_downloader.py download owner/repo-name
 
 # 示例：下载MySQL数据库插件
