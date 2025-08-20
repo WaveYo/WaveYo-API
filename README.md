@@ -58,10 +58,30 @@ cp .env.example .env
 python main.py
 ```
 
-### 2. 使用CLI工具（开发中）
+### 2. 使用CLI工具
 
-WaveYo-API 提供了CLI工具来简化开发流程：
+WaveYo-API 提供了完整的CLI工具来简化开发流程：
 
+#### a. 安装 yoapi-cli
+
+##### i. 使用 pip 安装
+```bash
+pip install yoapi-cli
+```
+
+##### ii. 使用 pipx 安装（推荐）
+```bash
+pipx install yoapi-cli
+```
+
+##### iii. 从源码安装
+```bash
+git clone https://github.com/WaveYo/yoapi-cli.git
+cd yoapi-cli
+pip install -e .
+```
+
+#### b. 使用 yoapi-cli
 ```bash
 # 创建虚拟环境（优先使用uv）
 yoapi venv create
@@ -73,7 +93,7 @@ yoapi venv create
 source .venv/bin/activate
 
 # 安装项目依赖
-yoapi package install -r requirements.txt
+yoapi package install requirements.txt
 
 # 启动服务（开发模式）
 yoapi run --reload
@@ -116,7 +136,7 @@ yoapi venv create
 yoapi package install <package-name>
 
 # 安装requirements.txt中的所有包
-yoapi package install -r requirements.txt
+yoapi package install requirements.txt
 
 # 卸载包
 yoapi package uninstall <package-name>

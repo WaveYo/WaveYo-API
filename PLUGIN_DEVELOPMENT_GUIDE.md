@@ -13,7 +13,7 @@ WaveYo-API 采用核心-插件架构，所有业务功能都以插件形式动�
 **文件结构**:
 ```
 plugins/
-└── yoapi-plugin-api/
+└── yoapi-plugin-demoapi/
     ├── __init__.py          # 主文件，必须包含register函数
     ├── requirements.txt     # 插件依赖
     ├── .env                # 插件环境变量（可选）
@@ -21,9 +21,11 @@ plugins/
         └── v1.py
 ```
 
+**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-demoapi`
+
 **代码示例**:
 ```python
-# plugins/yoapi-plugin-api/__init__.py
+# plugins/yoapi-plugin-demoapi/__init__.py
 from fastapi import APIRouter, Depends
 from plugins.log import get_log_service
 
@@ -48,7 +50,7 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── yoapi-plugin-database/
+└── yoapi-plugin-demodb/
     ├── __init__.py
     ├── requirements.txt
     ├── .env
@@ -56,9 +58,11 @@ plugins/
     └── services.py         # 服务类
 ```
 
+**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-mysql-demodb`
+
 **代码示例**:
 ```python
-# plugins/yoapi-plugin-database/__init__.py
+# plugins/yoapi-plugin-demodb/__init__.py
 import os
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -99,7 +103,7 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── yoapi-plugin-auth/
+└── yoapi-plugin-autdemoauthh/
     ├── __init__.py
     ├── requirements.txt
     ├── .env
@@ -107,9 +111,11 @@ plugins/
     └── services.py         # 认证服务
 ```
 
+**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-demoauth`
+
 **代码示例**:
 ```python
-# plugins/yoapi-plugin-auth/__init__.py
+# plugins/yoapi-plugin-demoauth/__init__.py
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 
@@ -149,6 +155,8 @@ plugins/
     ├── .env
     └── tools.py           # 工具函数
 ```
+
+**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-utils`
 
 ## 开发要求
 
@@ -292,6 +300,68 @@ def register(app, **dependencies):
     logger.info("插件已成功注册")
 ```
 
+## CLI工具使用
+
+WaveYo-API 提供了强大的命令行工具来简化插件开发和管理流程：
+
+### 插件管理命令
+
+```bash
+# 创建新插件（自动添加yoapi-plugin-前缀）
+yoapi plugin new my-plugin
+
+# 下载插件（从GitHub）
+yoapi plugin download owner/repo-name
+
+# 示例：下载MySQL数据库插件
+yoapi plugin download WaveYo/yoapi-plugin-mysql-database
+
+# 列出已安装的插件
+yoapi plugin list
+
+# 删除插件
+yoapi plugin remove plugin-name
+```
+
+### 虚拟环境和依赖管理
+
+```bash
+# 创建虚拟环境（优先使用uv）
+yoapi venv create
+
+# 安装项目依赖
+yoapi package install -r requirements.txt
+
+# 安装特定包
+yoapi package install package-name
+
+# 卸载包
+yoapi package uninstall package-name
+```
+
+### 项目运行
+
+```bash
+# 运行项目
+yoapi run
+
+# 运行项目（热重载模式）
+yoapi run --reload
+```
+
+### 插件下载工具（原始方式）
+
+```bash
+# 使用原始下载工具
+python plugin_downloader.py download owner/repo-name
+
+# 列出已安装的插件
+python plugin_downloader.py list
+
+# 指定重试次数
+python plugin_downloader.py download owner/repo-name --retries 5
+```
+
 ## 故障排除
 
 ### 常见问题
@@ -299,14 +369,20 @@ def register(app, **dependencies):
 1. **插件加载失败**
    - 检查`register`函数是否存在
    - 验证依赖是否安装成功
+   - 确认插件名称符合`yoapi-plugin-xxx`规范
 
 2. **依赖安装失败**
    - 检查`requirements.txt`格式
    - 确认网络连接正常
+   - 尝试使用CLI工具重新安装依赖
 
 3. **环境变量未加载**
    - 确认`.env`文件路径正确
    - 检查变量命名规范
+
+4. **CLI工具问题**
+   - 确保虚拟环境已激活
+   - 检查Python路径是否正确
 
 ### 调试技巧
 
@@ -315,12 +391,22 @@ def register(app, **dependencies):
 LOG_LEVEL=DEBUG python main.py
 ```
 
+使用CLI工具运行：
+```bash
+yoapi run
+```
+
 检查已加载插件：
 ```bash
 curl http://localhost:8000/
 ```
 
+使用CLI工具列出插件：
+```bash
+yoapi plugin list
+```
+
 ---
 
 *最后更新: 2025-08-20*
-*版本: 0.1.0*
+*版本: 0.1.2*
