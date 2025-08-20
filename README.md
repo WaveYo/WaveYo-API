@@ -60,7 +60,7 @@ python main.py
 
 ### 2. 使用CLI工具
 
-WaveYo-API 提供了完整的CLI工具来简化开发流程：
+WaveYo-API 提供了完整的CLI工具[yoapi-cli](https://github.com/WaveYo/yoapi-cli)来简化开发流程：
 
 #### a. 安装 yoapi-cli
 
