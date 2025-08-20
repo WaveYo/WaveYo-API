@@ -38,28 +38,8 @@ WaveYo-API/
 
 ## 快速开始
 
-### 1. 使用CLI工具（推荐）
 
-WaveYo-API 提供了强大的CLI工具来简化开发流程：
-
-```bash
-# 创建虚拟环境（优先使用uv）
-yoapi venv create
-
-# 激活虚拟环境（Windows）
-.\.venv\Scripts\activate
-
-# 或激活虚拟环境（Unix/Linux/Mac）
-source .venv/bin/activate
-
-# 安装项目依赖
-yoapi package install -r requirements.txt
-
-# 启动服务（开发模式）
-yoapi run --reload
-```
-
-### 2. 传统方式
+### 1. 传统方式
 
 ```bash
 # 安装依赖
@@ -76,6 +56,27 @@ cp .env.example .env
 
 # 启动服务
 python main.py
+```
+
+### 2. 使用CLI工具（开发中）
+
+WaveYo-API 提供了CLI工具来简化开发流程：
+
+```bash
+# 创建虚拟环境（优先使用uv）
+yoapi venv create
+
+# 激活虚拟环境（Windows）
+.\.venv\Scripts\activate
+
+# 或激活虚拟环境（Unix/Linux/Mac）
+source .venv/bin/activate
+
+# 安装项目依赖
+yoapi package install -r requirements.txt
+
+# 启动服务（开发模式）
+yoapi run --reload
 ```
 
 服务将在 `http://localhost:8000` 启动。
@@ -328,5 +329,5 @@ docker-compose up --build
 
 ---
 
-*版本: 0.1.0*
+*版本: 0.1.2*
 *最后更新: 2025-08-20*
