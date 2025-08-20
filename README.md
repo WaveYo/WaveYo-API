@@ -20,14 +20,15 @@ WaveYo-API/
 │   └── plugin_manager.py # 插件管理器
 ├── plugins/              # 插件目录
 │   ├── __init__.py
-│   ├── log/             # 日志服务插件
+│   ├── yoapi-plugin-log/             # 日志服务插件
 │   │   ├── __init__.py
 │   │   ├── formatters.py
 │   │   └── requirements.txt
-│   └── hello_world/     # Hello World示例插件
+│   └── yoapi-plugin-hello-world/     # Hello World示例插件
 │       ├── __init__.py
 │       └── requirements.txt
 ├── main.py              # 主程序入口
+├── plugin_downloader.py # 插件下载工具
 ├── requirements.txt     # 主项目依赖
 ├── .env                # 环境变量配置
 ├── .env.example        # 环境变量示例
@@ -82,16 +83,41 @@ curl http://localhost:8000/health
 
 ## 插件开发
 
+### 插件命名规范
+所有插件必须遵循 `yoapi-plugin-xxx` 命名规范，例如：
+- `yoapi-plugin-hello-world`
+- `yoapi-plugin-log` 
+- `yoapi-plugin-mysql-database`
+
+系统只会加载符合此命名规范的插件。
+
+### 插件下载工具
+WaveYo-API 提供了插件下载工具，可以从GitHub自动下载插件：
+
+```bash
+# 下载插件
+python plugin_downloader.py download owner/repo-name
+
+# 示例：下载MySQL数据库插件
+python plugin_downloader.py download WaveYo/yoapi-plugin-mysql-database
+
+# 列出已安装的插件
+python plugin_downloader.py list
+
+# 指定重试次数
+python plugin_downloader.py download owner/repo-name --retries 5
+```
+
 ### 创建新插件
 
-1. 在 `plugins/` 目录下创建插件文件夹
+1. 在 `plugins/` 目录下创建符合命名规范的插件文件夹
 2. 创建 `__init__.py` 文件并实现 `register` 函数
 3. 添加 `requirements.txt` 文件声明依赖
 4. （可选）添加 `.env` 文件配置环境变量
 
 ### 插件示例
 
-参考 `plugins/hello_world/` 和 `plugins/log/` 插件实现。
+参考 `plugins/yoapi-plugin-hello-world/` 和 `plugins/yoapi-plugin-log/` 插件实现。
 
 ### 详细规范
 

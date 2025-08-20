@@ -1,8 +1,20 @@
 import os
 import contextlib
+import sys
 import uvicorn
 from fastapi import FastAPI
 from core import PluginManager
+
+
+def is_uvicorn_reload() -> bool:
+    """
+    检测是否在uvicorn热重载模式下运行
+    
+    Returns:
+        bool: 如果是热重载模式返回True，否则返回False
+    """
+    # 检查是否通过uvicorn启动且启用了reload参数
+    return any("uvicorn" in arg and "--reload" in arg for arg in sys.argv)
 
 
 @contextlib.asynccontextmanager
@@ -13,6 +25,12 @@ async def lifespan(app: FastAPI):
     
     # 启动时加载插件
     plugin_manager.load_all_plugins_with_deps()
+    
+    # 如果不是uvicorn热重载模式，提示用户手动重启
+    if not is_uvicorn_reload() and __name__ != "__main__":
+        print("⚠️  提示: Python不支持热插拔，插件更改需要手动重启服务")
+        print("💡 建议: 使用 'uvicorn main:create_app --reload' 启动以获得热重载支持")
+    
     yield
     # 关闭时清理资源（可选）
 

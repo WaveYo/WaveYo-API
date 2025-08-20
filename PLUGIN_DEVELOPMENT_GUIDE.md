@@ -13,7 +13,7 @@ WaveYo-API 采用核心-插件架构，所有业务功能都以插件形式动�
 **文件结构**:
 ```
 plugins/
-└── api_plugin/
+└── yoapi-plugin-api/
     ├── __init__.py          # 主文件，必须包含register函数
     ├── requirements.txt     # 插件依赖
     ├── .env                # 插件环境变量（可选）
@@ -23,7 +23,7 @@ plugins/
 
 **代码示例**:
 ```python
-# plugins/api_plugin/__init__.py
+# plugins/yoapi-plugin-api/__init__.py
 from fastapi import APIRouter, Depends
 from plugins.log import get_log_service
 
@@ -48,7 +48,7 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── database/
+└── yoapi-plugin-database/
     ├── __init__.py
     ├── requirements.txt
     ├── .env
@@ -58,7 +58,7 @@ plugins/
 
 **代码示例**:
 ```python
-# plugins/database/__init__.py
+# plugins/yoapi-plugin-database/__init__.py
 import os
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -99,7 +99,7 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── auth/
+└── yoapi-plugin-auth/
     ├── __init__.py
     ├── requirements.txt
     ├── .env
@@ -109,7 +109,7 @@ plugins/
 
 **代码示例**:
 ```python
-# plugins/auth/__init__.py
+# plugins/yoapi-plugin-auth/__init__.py
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 
@@ -143,7 +143,7 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── utils/
+└── yoapi-plugin-utils/
     ├── __init__.py
     ├── requirements.txt
     ├── .env
