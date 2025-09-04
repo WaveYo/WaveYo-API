@@ -1,13 +1,10 @@
 import os
 import logging
-from dotenv import load_dotenv
 from .formatters import CustomFormatter
 
 
-# 加载插件自身的环境变量
-env_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(env_path):
-    load_dotenv(env_path)
+# 环境变量由插件管理器统一加载
+# 插件管理器会自动加载插件目录下的.env文件
 
 
 class LogService:

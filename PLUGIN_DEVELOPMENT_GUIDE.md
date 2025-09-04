@@ -208,13 +208,72 @@ another-package>=1.2.0
 
 ### 环境变量规范
 
-1. **加载顺序**:
-   - 首先加载插件自身的`.env`文件
-   - 然后加载主项目的环境变量
+1. **加载顺序和优先级**:
+   - 插件环境变量 > 主项目环境变量
+   - 插件管理器会自动加载插件目录下的`.env`文件
+   - 支持环境变量覆盖（插件变量优先于主项目变量）
 
 2. **命名规范**:
-   - 使用大写字母和下划线
-   - 添加前缀避免冲突（如`PLUGIN_DB_URL`）
+   - 使用大写字母和下划线命名（如`DATABASE_URL`, `API_KEY`）
+   - 建议添加插件前缀避免冲突（如`LOG_LEVEL`, `HELLO_MESSAGE_TEMPLATE`）
+
+3. **环境变量验证框架**:
+   WaveYo-API提供了强大的环境变量验证框架，支持类型检查、默认值、必需性验证等：
+
+   ```python
+   from core.env_validator import get_env_validator, EnvVarType, create_env_schema
+
+   # 定义环境变量模式
+   ENV_SCHEMA = {
+       "DB_URL": {
+           "type": EnvVarType.STRING,
+           "required": True,
+           "description": "数据库连接URL"
+       },
+       "MAX_CONNECTIONS": {
+           "type": EnvVarType.INTEGER,
+           "required": False,
+           "default": 10,
+           "min": 1,
+           "max": 100,
+           "description": "最大连接数"
+       },
+       "DEBUG_MODE": {
+           "type": EnvVarType.BOOLEAN,
+           "required": False,
+           "default": "false",
+           "description": "调试模式开关"
+       }
+   }
+
+   def register(app, **dependencies):
+       # 验证环境变量
+       validator = get_env_validator()
+       try:
+           env_vars = validator.validate_env_vars("your-plugin-name", ENV_SCHEMA)
+           # 使用验证后的环境变量
+           db_url = env_vars["DB_URL"]
+       except ValueError as e:
+           logger.error(f"环境变量验证失败: {e}")
+           raise
+   ```
+
+4. **冲突检测机制**:
+   - 系统会自动检测跨插件的环境变量冲突
+   - 当多个插件设置相同的环境变量但值不同时会发出警告
+   - 冲突检测包括：变量覆盖冲突和跨插件值不一致冲突
+
+   **冲突示例警告**:
+   ```
+   [WARNING][plugin_manager]环境变量冲突: DATABASE_URL 在插件 plugin-a(mysql://localhost:3306/db1) 和 plugin-b(mysql://localhost:3306/db2) 中存在不同值
+   [WARNING][plugin_manager]环境变量被覆盖: LOG_LEVEL 值从 'INFO' 改为 'DEBUG' 由插件 plugin-c 修改
+   ```
+
+5. **最佳实践**:
+   - 使用环境变量验证框架确保变量类型和安全
+   - 为可选变量提供合理的默认值
+   - 避免使用过于通用的变量名（如`HOST`, `PORT`）
+   - 在插件文档中明确说明所需的环境变量
 
 ## 核心功能
 
