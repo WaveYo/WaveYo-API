@@ -15,9 +15,13 @@
 
 ```
 WaveYo-API/
-├── core/                 # 核心模块
-│   ├── __init__.py
-│   └── plugin_manager.py # 插件管理器
+├── core/
+│    ├── plugin_manager.py          # 主入口，协调其他模块
+│    ├── plugin_discoverer.py       # 插件发现功能
+│    ├── dependency_manager.py      # 依赖管理（包含UV集成）
+│    ├── isolated_executor.py       # 隔离执行环境
+│    ├── env_manager.py             # 环境变量管理
+│    └── shared_dependency_registry.py # 共享依赖注册表
 ├── plugins/              # 插件目录
 │   ├── __init__.py
 │   ├── yoapi-plugin-log/             # 日志服务插件
