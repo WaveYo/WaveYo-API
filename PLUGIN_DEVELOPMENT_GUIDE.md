@@ -33,12 +33,12 @@ router = APIRouter(prefix="/api", tags=["api"])
 
 @router.get("/items")
 async def get_items():
-    logger = get_log_service().get_logger(__name__)
-    logger.info("查询物品列表")
     return {"items": []}
 
 def register(app, **dependencies):
-    logger = get_log_service().get_logger(__name__)
+    # 获取日志服务
+    logger = log_service.get_logger(__name__)
+    
     app.include_router(router)
     logger.info("API插件已注册")
 ```
@@ -63,15 +63,9 @@ plugins/
 **代码示例**:
 ```python
 # plugins/yoapi-plugin-demodb/__init__.py
-import os
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-
-# 加载插件环境变量
-env_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(env_path):
-    load_dotenv(env_path)
+from core.env_validator import get_env_validator, EnvVarType
 
 class DatabaseService:
     def __init__(self, db_url: str):
@@ -85,9 +79,25 @@ class DatabaseService:
             yield session
 
 def register(app, **dependencies):
-    db_url = os.getenv("DB_URL")
-    if not db_url:
-        raise ValueError("DB_URL环境变量未设置")
+    # 使用环境变量验证框架获取数据库URL
+    validator = get_env_validator()
+    env_schema = {
+        "DB_URL": {
+            "type": EnvVarType.STRING,
+            "required": True,
+            "description": "数据库连接URL"
+        }
+    }
+    
+    try:
+        env_vars = validator.validate_env_vars("demodb", env_schema)
+        db_url = env_vars["DB_URL"]
+    except ValueError as e:
+        # 获取日志服务记录错误
+        log_service = dependencies.get('log_service')
+        logger = log_service.get_logger(__name__)
+        logger.error(f"环境变量验证失败: {e}")
+        raise
     
     db_service = DatabaseService(db_url)
     dependencies['db_service'] = db_service
@@ -118,12 +128,36 @@ plugins/
 # plugins/yoapi-plugin-demoauth/__init__.py
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
+from core.env_validator import get_env_validator, EnvVarType
 
 api_key_header = APIKeyHeader(name="X-API-Key")
 
 async def api_key_auth(api_key: str = Depends(api_key_header)):
-    # 验证API密钥逻辑
-    if api_key != "valid-key":
+    # 使用环境变量验证框架获取API密钥
+    validator = get_env_validator()
+    env_schema = {
+        "VALID_API_KEY": {
+            "type": EnvVarType.STRING,
+            "required": True,
+            "description": "有效的API密钥"
+        }
+    }
+    
+    try:
+        env_vars = validator.validate_env_vars("demoauth", env_schema)
+        valid_api_key = env_vars["VALID_API_KEY"]
+    except ValueError as e:
+        # 获取日志服务记录错误
+        log_service = dependencies.get('log_service')
+        logger = log_service.get_logger(__name__)
+        logger.error(f"环境变量验证失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="服务器配置错误"
+        )
+    
+    # 验证API密钥
+    if api_key != valid_api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="无效的API密钥"
@@ -131,6 +165,10 @@ async def api_key_auth(api_key: str = Depends(api_key_header)):
     return api_key
 
 def register(app, **dependencies):
+    # 获取日志服务
+    log_service = dependencies.get('log_service')
+    logger = log_service.get_logger(__name__)
+    
     # 为所有路由添加认证依赖（除了特定路径）
     for route in app.routes:
         if hasattr(route, 'dependencies'):
@@ -138,7 +176,6 @@ def register(app, **dependencies):
             if not any(path in route.path for path in ['/health', '/docs', '/openapi']):
                 route.dependencies.insert(0, Depends(api_key_auth))
     
-    logger = dependencies.get('log_service').get_logger(__name__)
     logger.info("认证插件已加载，已为所有路由添加认证")
 ```
 
@@ -176,19 +213,21 @@ plugins/
 
 **使用示例**:
 ```python
-from plugins.log import get_log_service
-
-logger = get_log_service().get_logger(__name__)
-
-# 不同级别的日志
-logger.debug("调试信息")
-logger.info("普通信息")
-logger.warning("警告信息")
-logger.error("错误信息")
-logger.critical("严重错误")
-
-# 带上下文的日志
-logger.info("成功查询到API密钥, ID: 67fac2dc-7c19-11f0-b527-b8cef6abb894")
+# 在register函数中通过依赖注入获取日志服务
+def register(app, **dependencies):
+    # 获取日志服务
+    log_service = dependencies.get('log_service')
+    logger = log_service.get_logger(__name__)
+    
+    # 不同级别的日志
+    logger.debug("调试信息")
+    logger.info("普通信息")
+    logger.warning("警告信息")
+    logger.error("错误信息")
+    logger.critical("严重错误")
+    
+    # 带上下文的日志
+    logger.info("成功查询到API密钥, ID: 67fac2dc-7c19-11f0-b527-b8cef6abb894")
 ```
 
 ### 依赖管理规范
@@ -335,26 +374,20 @@ def register(app, **dependencies):
 
 ### 基础插件模板
 ```python
-import os
-from dotenv import load_dotenv
 from fastapi import APIRouter
-from plugins.log import get_log_service
-
-# 加载环境变量
-env_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(env_path):
-    load_dotenv(env_path)
 
 router = APIRouter()
 
 @router.get("/test")
 async def test_endpoint():
-    logger = get_log_service().get_logger(__name__)
     logger.info("测试端点被调用")
     return {"status": "ok"}
 
 def register(app, **dependencies):
-    logger = get_log_service().get_logger(__name__)
+    # 获取日志服务
+    log_service = dependencies.get('log_service')
+    logger = log_service.get_logger(__name__)
+    
     app.include_router(router)
     logger.info("插件已成功注册")
 ```
@@ -467,5 +500,5 @@ yoapi plugin list
 
 ---
 
-*最后更新: 2025-08-20*
-*版本: 0.1.2*
+*最后更新: 2025-09-04*
+*版本: 0.1.3*
