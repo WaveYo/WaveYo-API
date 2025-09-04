@@ -83,10 +83,26 @@ if __name__ == "__main__":
     # 创建应用
     app = create_app()
     
+    # 获取端口配置，支持环境变量和命令行参数
+    port = int(os.getenv("PORT", 8000))
+    
+    # 检查命令行参数中是否有端口指定
+    for i, arg in enumerate(sys.argv):
+        if arg == "--port" and i + 1 < len(sys.argv):
+            try:
+                port = int(sys.argv[i + 1])
+            except ValueError:
+                print(f"⚠️  警告: 无效的端口号 '{sys.argv[i + 1]}'，使用默认端口 {port}")
+        elif arg.startswith("--port="):
+            try:
+                port = int(arg.split("=")[1])
+            except (ValueError, IndexError):
+                print(f"⚠️  警告: 无效的端口号格式 '{arg}'，使用默认端口 {port}")
+    
     # 启动服务器
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8000,
+        port=port,
         log_level="info"
     )
