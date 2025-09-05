@@ -1,0 +1,23 @@
+{
+  "name": "yoapi-plugin-hello-world",
+  "version": "1.0.0",
+  "description": "一个简单的Hello World示例插件，用于演示WaveYo-API插件系统",
+  "author": "WaveYo Team",
+  "license": "MIT",
+  "priority": 50,
+  "dependencies": ["yoapi-plugin-log"],
+  "main": "__init__.py",
+  "keywords": ["hello", "example", "demo"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WaveYo/WaveYo-API"
+  },
+  "homepage": "https://github.com/WaveYo/WaveYo-API",
+  "bugs": {
+    "url": "https://github.com/WaveYo/WaveYo-API/issues"
+  },
+  "requires": {
+    "python": ">=3.8",
+    "fastapi": ">=0.68.0"
+  }
+}

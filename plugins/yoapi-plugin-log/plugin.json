@@ -1,0 +1,24 @@
+{
+  "name": "yoapi-plugin-log",
+  "version": "1.0.0",
+  "description": "日志服务插件，提供统一的日志记录功能，是其他插件的基础依赖",
+  "author": "WaveYo Team",
+  "license": "MIT",
+  "priority": 90,
+  "dependencies": [],
+  "main": "__init__.py",
+  "keywords": ["logging", "log", "service", "core"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WaveYo/WaveYo-API"
+  },
+  "homepage": "https://github.com/WaveYo/WaveYo-API",
+  "bugs": {
+    "url": "https://github.com/WaveYo/WaveYo-API/issues"
+  },
+  "requires": {
+    "python": ">=3.8"
+  },
+  "provides": ["log_service"],
+  "shared_dependencies": ["log_service"]
+}

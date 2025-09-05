@@ -9,6 +9,7 @@ from .dependency_manager import DependencyManager
 from .isolated_executor import IsolatedPluginExecutor
 from .shared_dependency_registry import SharedDependencyRegistry
 from .env_validator import get_env_validator
+from .plugin_metadata import PluginMetadata, PluginMetadataManager
 
 
 class PluginManager:
@@ -32,6 +33,7 @@ class PluginManager:
         self.dependency_manager = DependencyManager(plugins_path)
         self.isolated_executor = IsolatedPluginExecutor(plugins_path)
         self.shared_dependency_registry = SharedDependencyRegistry()
+        self.metadata_manager = PluginMetadataManager(plugins_path)
         
     def register_shared_dependency(self, name: str, dependency: Any) -> None:
         """
@@ -51,6 +53,24 @@ class PluginManager:
             插件名称列表
         """
         return self.plugin_discoverer.discover_plugins()
+    
+    def discover_plugins_with_metadata(self) -> Dict[str, PluginMetadata]:
+        """
+        发现插件并加载其元数据
+        
+        Returns:
+            插件名称到元数据的映射
+        """
+        return self.plugin_discoverer.discover_plugins_with_metadata()
+    
+    def get_sorted_plugins(self) -> List[str]:
+        """
+        获取按依赖关系和优先级排序的插件列表
+        
+        Returns:
+            排序后的插件名称列表
+        """
+        return self.plugin_discoverer.get_sorted_plugins()
             
     def _load_plugin_env_vars(self, plugin_name: str) -> bool:
         """
@@ -58,7 +78,7 @@ class PluginManager:
         
         Args:
             plugin_name: 插件名称
-            
+                        
         Returns:
             是否成功加载环境变量
         """
@@ -223,3 +243,109 @@ class PluginManager:
                 success_count += 1
                 
         logging.info(f"总共成功加载了 {success_count}/{len(plugins)} 个插件（包含依赖安装）")
+        
+    def load_all_plugins_with_priority(self) -> None:
+        """
+        按优先级加载所有插件（优先级高的先加载）
+        """
+        sorted_plugins = self.get_sorted_plugins()
+        success_count = 0
+        
+        for plugin_name in sorted_plugins:
+            if self.load_and_register_plugin_with_deps(plugin_name):
+                success_count += 1
+                
+        logging.info(f"按优先级成功加载了 {success_count}/{len(sorted_plugins)} 个插件")
+        
+    def load_plugins_by_dependencies(self) -> None:
+        """
+        按依赖关系加载插件（先加载被依赖的插件）
+        """
+        metadata_dict = self.discover_plugins_with_metadata()
+        
+        # 检查冲突
+        conflicts = self.metadata_manager.check_conflicts(metadata_dict)
+        if conflicts:
+            for conflict in conflicts:
+                logging.warning(conflict)
+        
+        # 解析依赖关系
+        try:
+            sorted_plugins = self.metadata_manager.resolve_dependencies(metadata_dict)
+            logging.info(f"依赖解析完成，按顺序加载插件: {sorted_plugins}")
+            
+            success_count = 0
+            for plugin_name in sorted_plugins:
+                if self.load_and_register_plugin_with_deps(plugin_name):
+                    success_count += 1
+                    
+            logging.info(f"按依赖关系成功加载了 {success_count}/{len(sorted_plugins)} 个插件")
+            
+        except Exception as e:
+            logging.warning(f"依赖解析失败，将按优先级排序: {e}")
+            self.load_all_plugins_with_priority()
+            
+    def get_plugin_metadata(self, plugin_name: str) -> Optional[PluginMetadata]:
+        """
+        获取插件的元数据
+        
+        Args:
+            plugin_name: 插件名称
+            
+        Returns:
+            插件元数据，如果不存在则返回None
+        """
+        plugin_path = os.path.join(self.plugins_path, plugin_name)
+        return self.metadata_manager.load_plugin_metadata(plugin_name, plugin_path)
+        
+    def validate_plugin_metadata(self, plugin_name: str) -> List[str]:
+        """
+        验证插件元数据的有效性
+        
+        Args:
+            plugin_name: 插件名称
+            
+        Returns:
+            错误消息列表，如果验证通过则返回空列表
+        """
+        metadata = self.get_plugin_metadata(plugin_name)
+        if metadata:
+            return metadata.validate()
+        return ["无法加载插件元数据"]
+        
+    def create_plugin_metadata(self, plugin_name: str) -> bool:
+        """
+        为插件创建默认的元数据文件
+        
+        Args:
+            plugin_name: 插件名称
+            
+        Returns:
+            是否成功创建
+        """
+        plugin_path = os.path.join(self.plugins_path, plugin_name)
+        metadata = PluginMetadata.create_default(plugin_name, plugin_path)
+        return metadata.save()
+        
+    def get_plugins_status(self) -> Dict[str, Dict[str, Any]]:
+        """
+        获取所有插件的状态信息
+        
+        Returns:
+            插件状态信息字典
+        """
+        metadata_dict = self.discover_plugins_with_metadata()
+        status_info = {}
+        
+        for plugin_name, metadata in metadata_dict.items():
+            status_info[plugin_name] = {
+                'loaded': plugin_name in self.loaded_plugins,
+                'enabled': metadata.enabled,
+                'priority': metadata.priority,
+                'dependencies': metadata.dependencies,
+                'conflicts': metadata.conflicts,
+                'has_metadata_file': self.plugin_discoverer.has_plugin_metadata(plugin_name),
+                'environment': self.loaded_plugins[plugin_name]['environment'] if plugin_name in self.loaded_plugins else 'not_loaded'
+            }
+            
+        return status_info

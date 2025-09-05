@@ -90,3 +90,6 @@ docker-compose.yml
 
 # Another files
 README.png
+
+# Test files
+tests_area/
