@@ -23,8 +23,8 @@ async def lifespan(app: FastAPI):
     # 获取插件管理器实例
     plugin_manager = app.state.plugin_manager
     
-    # 启动时加载插件
-    plugin_manager.load_all_plugins_with_deps()
+    # 启动时加载插件（按依赖关系顺序）
+    plugin_manager.load_plugins_by_dependencies()
     
     # 如果不是uvicorn热重载模式，提示用户手动重启
     if not is_uvicorn_reload() and __name__ != "__main__":
@@ -67,7 +67,7 @@ def create_app() -> FastAPI:
         """根端点"""
         return {
             "message": "Welcome to WaveYo-API",
-            "version": "0.1.0",
+            "version": "0.1.5",
             "loaded_plugins": list(plugin_manager.get_loaded_plugins().keys())
         }
     

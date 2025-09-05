@@ -8,7 +8,7 @@
 - ⚡ **高性能** - 基于FastAPI和异步编程
 - 📝 **统一日志** - 自定义日志格式和统一管理
 - 🔧 **依赖自动安装** - 插件依赖自动检测和安装
-- 🔐 **环境隔离** - 插件支持独立环境变量
+- 🔐 **环境管理** - 插件支持独立环境变量
 - 📚 **完整文档** - 详细的开发规范和示例
 
 ## 项目结构
@@ -19,7 +19,6 @@ WaveYo-API/
 │    ├── plugin_manager.py          # 主入口，协调其他模块
 │    ├── plugin_discoverer.py       # 插件发现功能
 │    ├── dependency_manager.py      # 依赖管理（包含UV集成）
-│    ├── isolated_executor.py       # 隔离执行环境
 │    ├── env_manager.py             # 环境变量管理
 │    └── shared_dependency_registry.py # 共享依赖注册表
 ├── plugins/              # 插件目录
@@ -353,5 +352,5 @@ docker-compose up --build
 
 ---
 
-*版本: 0.1.4*
+*版本: 0.1.5*
 *最后更新: 2025-09-05*

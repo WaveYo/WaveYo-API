@@ -136,10 +136,10 @@ class DependencyManager:
     def check_dependency_conflicts(self, plugin_name: str) -> Optional[Dict]:
         """
         检查依赖冲突（使用UV进行冲突检测）
-        
+
         Args:
             plugin_name: 插件名称
-            
+
         Returns:
             冲突信息字典，如果没有冲突则返回None
         """
@@ -155,25 +155,14 @@ class DependencyManager:
             if not os.path.exists(requirements_file):
                 return None
                 
-            # 创建临时文件用于冲突检测
-            import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
-                temp_requirements = temp_file.name
-                
-            # 使用uv pip compile检测冲突
+            # 使用uv pip compile检测冲突（直接输出到null，只检查冲突）
             result = subprocess.run(
-                ["uv", "pip", "compile", "--output-file", temp_requirements, requirements_file],
+                ["uv", "pip", "compile", requirements_file, "--quiet", "--output-file", os.devnull],
                 capture_output=True,
                 text=True,
                 cwd=plugin_path,
                 timeout=30
             )
-            
-            # 清理临时文件
-            try:
-                os.unlink(temp_requirements)
-            except:
-                pass
             
             if result.returncode != 0:
                 # 检测到冲突，解析错误信息

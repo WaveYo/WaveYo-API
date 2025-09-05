@@ -6,7 +6,6 @@ from fastapi import FastAPI
 from .plugin_discoverer import PluginDiscoverer
 from .env_manager import EnvManager
 from .dependency_manager import DependencyManager
-from .isolated_executor import IsolatedPluginExecutor
 from .shared_dependency_registry import SharedDependencyRegistry
 from .env_validator import get_env_validator
 from .plugin_metadata import PluginMetadata, PluginMetadataManager
@@ -31,7 +30,6 @@ class PluginManager:
         self.plugin_discoverer = PluginDiscoverer(plugins_path)
         self.env_manager = EnvManager()
         self.dependency_manager = DependencyManager(plugins_path)
-        self.isolated_executor = IsolatedPluginExecutor(plugins_path)
         self.shared_dependency_registry = SharedDependencyRegistry()
         self.metadata_manager = PluginMetadataManager(plugins_path)
         
@@ -97,16 +95,9 @@ class PluginManager:
         """
         try:
             # 先加载插件的环境变量
-            self._load_plugin_env_vars(plugin_name)
-            
-            # 检查是否在隔离环境中安装了依赖
-            module = None
-            if plugin_name in self.isolated_executor.isolated_environments:
-                # 从隔离环境中加载插件
-                module = self._load_plugin_from_isolated_env(plugin_name)
-            else:
-                # 正常加载插件
-                module = importlib.import_module(f"plugins.{plugin_name}")
+            # 插件名称已经是有效的模块名称，但目录名称可能包含连字符
+            # 正常加载插件
+            module = importlib.import_module(f"plugins.{plugin_name}")
             
             if module is None:
                 logging.error(f"无法加载插件 {plugin_name} 的模块")
@@ -125,17 +116,17 @@ class PluginManager:
             self.loaded_plugins[plugin_name] = {
                 'module': module,
                 'status': 'loaded',
-                'environment': 'isolated' if plugin_name in self.isolated_executor.isolated_environments else 'main'
+                'environment': 'main'
             }
             
-            logging.info(f"成功加载插件: {plugin_name} (环境: {self.loaded_plugins[plugin_name]['environment']})")
+            logging.info(f"成功加载插件: {plugin_name}")
             return True
             
         except ImportError as e:
-            logging.error(f"导入插件 {plugin_name} 失败: {e}")
+            logging.error(f"导入插件 {plugin_name} 失败: {e}", exc_info=True)
             return False
         except Exception as e:
-            logging.error(f"加载插件 {plugin_name} 时发生错误: {e}")
+            logging.error(f"加载插件 {plugin_name} 时发生错误: {e}", exc_info=True)
             return False
             
     def load_all_plugins(self) -> None:
@@ -171,47 +162,17 @@ class PluginManager:
         
     def _install_plugin_dependencies(self, plugin_name: str) -> bool:
         """
-        安装插件的依赖项（包含智能冲突处理）
+        安装插件的依赖项（使用uv智能处理冲突）
         
         Args:
-            plugin_name: 插件名称
+            plugin_name: 插件名称（有效的Python模块名称）
             
         Returns:
             是否成功安装依赖
         """
-        # 先检查依赖冲突
-        conflicts = self.dependency_manager.check_dependency_conflicts(plugin_name)
-        
-        if conflicts:
-            logging.warning(f"插件 {plugin_name} 存在依赖冲突，尝试在隔离环境中安装...")
-            
-            # 创建隔离环境
-            if not self.isolated_executor.create_isolated_environment(plugin_name):
-                logging.error(f"无法为插件 {plugin_name} 创建隔离环境")
-                return False
-                
-            # 在隔离环境中安装依赖
-            if not self.isolated_executor.install_dependencies_in_isolated_env(plugin_name):
-                logging.error(f"无法在隔离环境中安装插件 {plugin_name} 的依赖")
-                return False
-                
-            logging.info(f"插件 {plugin_name} 的依赖已在隔离环境中成功安装")
-            return True
-            
-        # 如果没有冲突，正常安装
+        # 直接安装依赖，依赖冲突由uv包管理器智能处理
         return self.dependency_manager.install_plugin_dependencies(plugin_name)
         
-    def _load_plugin_from_isolated_env(self, plugin_name: str) -> Optional[Any]:
-        """
-        从隔离环境中加载插件模块
-        
-        Args:
-            plugin_name: 插件名称
-            
-        Returns:
-            插件模块，如果加载失败则返回None
-        """
-        return self.isolated_executor.load_plugin_from_isolated_env(plugin_name)
             
     def load_and_register_plugin_with_deps(self, plugin_name: str) -> bool:
         """
@@ -345,7 +306,7 @@ class PluginManager:
                 'dependencies': metadata.dependencies,
                 'conflicts': metadata.conflicts,
                 'has_metadata_file': self.plugin_discoverer.has_plugin_metadata(plugin_name),
-                'environment': self.loaded_plugins[plugin_name]['environment'] if plugin_name in self.loaded_plugins else 'not_loaded'
+            'environment': self.loaded_plugins[plugin_name]['environment'] if plugin_name in self.loaded_plugins else 'not_loaded'
             }
             
         return status_info

@@ -76,6 +76,11 @@ def register(app, **dependencies):
     # 将日志服务注册为共享依赖
     dependencies['log_service'] = _log_service
     
+    # 同时将日志服务注册到应用的共享依赖注册表中
+    if hasattr(app.state, 'plugin_manager'):
+        plugin_manager = app.state.plugin_manager
+        plugin_manager.register_shared_dependency('log_service', _log_service)
+    
     # 获取日志器并记录启动信息
     logger = _log_service.get_logger(__name__)
     logger.info("日志服务插件已成功加载")

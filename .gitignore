@@ -93,3 +93,8 @@ README.png
 
 # Test files
 tests_area/
+
+# Plugins - only keep yoapi_plugin_hello_world and yoapi_plugin_log
+plugins/*
+!plugins/yoapi_plugin_hello_world/
+!plugins/yoapi_plugin_log/

@@ -31,12 +31,12 @@ class PluginDiscoverer:
                 logging.warning(f"插件目录不存在: {self.plugins_path}")
                 return []
                 
-            # 发现插件 - 只加载符合 yoapi-plugin-xxx 命名规范的插件
+            # 发现插件 - 加载符合 yoapi_plugin_xxx 命名规范的插件
             plugins = []
             for module_info in pkgutil.iter_modules([self.plugins_path]):
-                if module_info.ispkg and module_info.name.startswith("yoapi-plugin-"):  # 只处理符合命名规范的包类型插件
+                if module_info.ispkg and module_info.name.startswith("yoapi_plugin_"):
                     plugins.append(module_info.name)
-                    
+                        
             logging.info(f"发现 {len(plugins)} 个符合命名规范的插件: {plugins}")
             return plugins
             
