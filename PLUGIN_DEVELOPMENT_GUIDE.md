@@ -13,19 +13,20 @@ WaveYo-API 采用核心-插件架构，所有业务功能都以插件形式动�
 **文件结构**:
 ```
 plugins/
-└── yoapi-plugin-demoapi/
+└── yoapi_plugin_demoapi/
     ├── __init__.py          # 主文件，必须包含register函数
+    ├── plugin.json           # 插件元数据文件
     ├── requirements.txt     # 插件依赖
     ├── .env                # 插件环境变量（可选）
     └── routers/            # 子路由（可选）
         └── v1.py
 ```
 
-**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-demoapi`
+**命名规范**: 必须使用 `yoapi_plugin_` 前缀，例如 `yoapi_plugin_demoapi`
 
 **代码示例**:
 ```python
-# plugins/yoapi-plugin-demoapi/__init__.py
+# plugins/yoapi_plugin_demoapi/__init__.py
 from fastapi import APIRouter, Depends
 from plugins.log import get_log_service
 
@@ -50,19 +51,20 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── yoapi-plugin-demodb/
+└── yoapi_plugin_demodb/
     ├── __init__.py
+    ├── plugin.json           # 插件元数据文件
     ├── requirements.txt
     ├── .env
     ├── models.py           # 数据模型
     └── services.py         # 服务类
 ```
 
-**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-mysql-demodb`
+**命名规范**: 必须使用 `yoapi_plugin_` 前缀，例如 `yoapi_plugin_mysql_demodb`
 
 **代码示例**:
 ```python
-# plugins/yoapi-plugin-demodb/__init__.py
+# plugins/yoapi_plugin_demodb/__init__.py
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from core.env_validator import get_env_validator, EnvVarType
@@ -113,19 +115,20 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── yoapi-plugin-autdemoauthh/
+└── yoapi_plugin_autdemoauthh/
     ├── __init__.py
+    ├── plugin.json           # 插件元数据文件
     ├── requirements.txt
     ├── .env
     ├── middleware.py       # 认证中间件
     └── services.py         # 认证服务
 ```
 
-**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-demoauth`
+**命名规范**: 必须使用 `yoapi_plugin_` 前缀，例如 `yoapi_plugin_demoauth`
 
 **代码示例**:
 ```python
-# plugins/yoapi-plugin-demoauth/__init__.py
+# plugins/yoapi_plugin_demoauth/__init__.py
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 from core.env_validator import get_env_validator, EnvVarType
@@ -186,14 +189,15 @@ def register(app, **dependencies):
 **文件结构**:
 ```
 plugins/
-└── yoapi-plugin-utils/
+└── yoapi_plugin_utils/
     ├── __init__.py
+    ├── plugin.json           # 插件元数据文件
     ├── requirements.txt
     ├── .env
     └── tools.py           # 工具函数
 ```
 
-**命名规范**: 必须使用 `yoapi-plugin-` 前缀，例如 `yoapi-plugin-utils`
+**命名规范**: 必须使用 `yoapi_plugin_` 前缀，例如 `yoapi_plugin_utils`
 
 ## 开发要求
 
@@ -215,12 +219,12 @@ WaveYo-API 提供了统一的插件元数据管理系统，类似 Node.js 的 pa
 **plugin.json 文件格式**:
 ```json
 {
-  "name": "yoapi-plugin-hello-world",
-  "version": "1.0.0",
+  "name": "yoapi_plugin_hello_world",
+  "version": "0.1.0",
   "description": "示例Hello World插件",
   "author": "开发者名称",
   "priority": 50,
-  "dependencies": ["yoapi-plugin-log"],
+  "dependencies": ["yoapi_plugin_log"],
   "tags": ["example", "hello-world"]
 }
 ```
@@ -480,14 +484,14 @@ WaveYo-API 提供了强大的命令行工具来简化插件开发和管理流程
 ### 插件管理命令
 
 ```bash
-# 创建新插件（自动添加yoapi-plugin-前缀）
+# 创建新插件（自动添加yoapi_plugin_前缀）
 yoapi plugin new my-plugin
 
 # 下载插件（从GitHub）
 yoapi plugin download owner/repo-name
 
 # 示例：下载MySQL数据库插件
-yoapi plugin download WaveYo/yoapi-plugin-mysql-database
+yoapi plugin download WaveYo/yoapi_plugin_mysql_database
 
 # 列出已安装的插件
 yoapi plugin list
@@ -542,7 +546,7 @@ python plugin_downloader.py download owner/repo-name --retries 5
 1. **插件加载失败**
    - 检查`register`函数是否存在
    - 验证依赖是否安装成功
-   - 确认插件名称符合`yoapi-plugin-xxx`规范
+   - 确认插件名称符合`yoapi_plugin_xxx`规范
 
 2. **依赖安装失败**
    - 检查`requirements.txt`格式

@@ -7,3 +7,4 @@
 
 #### 可提供外部Plugins：
 - [yoapi_plugin_mysqldb](https://github.com/WaveYo/yoapi_plugin_mysqldb)
+- [yoapi_plugin_openapi_base](https://github.com/WavesMan/yoapi_plugin_openapi_base)
